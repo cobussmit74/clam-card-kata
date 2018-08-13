@@ -58,26 +58,20 @@ namespace ClamCard.Implementations
 
         private decimal CalculateCostForCurrentJourney(IStation endStation)
         {
-            var costForSingle = CostPerSingleJourney(CurrentJourneyStartFrom, endStation);
+            var journeyCost = CostPerSingleJourney(CurrentJourneyStartFrom, endStation);
             var costPerDayLimit = CostPerDayLimit(CurrentJourneyStartFrom, endStation);
             var costPerWeekLimit = CostPerWeekLimit(CurrentJourneyStartFrom, endStation);
 
             var amountAlreadyChargedToday = _journeyHistory
-                .Where(j => j.Date.Date == _dateTimeProvider.Now.Date)
-                .Sum(j => j.Cost);
+                .SumCostOfJourneysTakenOnDay(_dateTimeProvider.Now);
 
-            var currentWeekOfYear = _dateTimeProvider.Now.WeekOfYear();
             var amountAlreadyChargedThisWeek = _journeyHistory
-                .Where(j => j.Date.WeekOfYear() == currentWeekOfYear)
-                .Sum(j => j.Cost);
+                .SumCostOfJourneysTakenInWeek(_dateTimeProvider.Now.WeekOfYear());
 
-            if (amountAlreadyChargedToday + costForSingle > costPerDayLimit)
-                costForSingle = costPerDayLimit - amountAlreadyChargedToday;
-
-            if (amountAlreadyChargedThisWeek + costForSingle > costPerWeekLimit)
-                costForSingle = costPerWeekLimit - amountAlreadyChargedThisWeek;
-
-            return costForSingle;
+            journeyCost = LimitCostToMaxAmount(journeyCost, costPerDayLimit, amountAlreadyChargedToday);
+            journeyCost = LimitCostToMaxAmount(journeyCost, costPerWeekLimit, amountAlreadyChargedThisWeek);
+            
+            return journeyCost;
         }
 
         private void ClearCurrentJourney(Journey theCompletedJourney)
@@ -105,6 +99,13 @@ namespace ClamCard.Implementations
             var costAtStartZone = startStation.Zone.CostPerWeekLimit;
             var costAtEndZone = endStation.Zone.CostPerWeekLimit;
             return Math.Max(costAtStartZone, costAtEndZone);
+        }
+
+        private static decimal LimitCostToMaxAmount(decimal cost, decimal costUpperLimit, decimal amountAlreadyCharged)
+        {
+            return (amountAlreadyCharged + cost > costUpperLimit)
+                ? costUpperLimit - amountAlreadyCharged
+                : cost;
         }
     }
 }
