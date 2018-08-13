@@ -3,6 +3,7 @@ using ClamCard.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ClamCard.Extensions;
 
 namespace ClamCard.Implementations
 {
@@ -44,7 +45,7 @@ namespace ClamCard.Implementations
         {
             var journey = new Journey
             {
-                Date = _dateTimeProvider.Now.Date,
+                Date = _dateTimeProvider.Now,
                 From = CurrentJourneyStartFrom,
                 To = station,
                 Cost = CalculateCostForCurrentJourney(station)
@@ -59,12 +60,24 @@ namespace ClamCard.Implementations
         {
             var costForSingle = CostPerSingleJourney(CurrentJourneyStartFrom, endStation);
             var costPerDayLimit = CostPerDayLimit(CurrentJourneyStartFrom, endStation);
-            var totalCostToday = _journeyHistory.Sum(j => j.Cost);
+            var costPerWeekLimit = CostPerWeekLimit(CurrentJourneyStartFrom, endStation);
 
-            if (totalCostToday + costForSingle > costPerDayLimit)
-                return costPerDayLimit - totalCostToday;
-            else
-                return costForSingle;
+            var amountAlreadyChargedToday = _journeyHistory
+                .Where(j => j.Date.Date == _dateTimeProvider.Now.Date)
+                .Sum(j => j.Cost);
+
+            var currentWeekOfYear = _dateTimeProvider.Now.WeekOfYear();
+            var amountAlreadyChargedThisWeek = _journeyHistory
+                .Where(j => j.Date.WeekOfYear() == currentWeekOfYear)
+                .Sum(j => j.Cost);
+
+            if (amountAlreadyChargedToday + costForSingle > costPerDayLimit)
+                costForSingle = costPerDayLimit - amountAlreadyChargedToday;
+
+            if (amountAlreadyChargedThisWeek + costForSingle > costPerWeekLimit)
+                costForSingle = costPerWeekLimit - amountAlreadyChargedThisWeek;
+
+            return costForSingle;
         }
 
         private void ClearCurrentJourney(Journey theCompletedJourney)
@@ -84,6 +97,13 @@ namespace ClamCard.Implementations
         {
             var costAtStartZone = startStation.Zone.CostPerDayLimit;
             var costAtEndZone = endStation.Zone.CostPerDayLimit;
+            return Math.Max(costAtStartZone, costAtEndZone);
+        }
+
+        private static decimal CostPerWeekLimit(IStation startStation, IStation endStation)
+        {
+            var costAtStartZone = startStation.Zone.CostPerWeekLimit;
+            var costAtEndZone = endStation.Zone.CostPerWeekLimit;
             return Math.Max(costAtStartZone, costAtEndZone);
         }
     }

@@ -1,8 +1,6 @@
 ﻿using ClamCard;
 using NSubstitute;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ClamCardTests.Builders
 {
@@ -10,7 +8,7 @@ namespace ClamCardTests.Builders
     {
         private FakeDateTimeProviderBuilder()
         {
-            _now = DateTime.Now;
+            _now = DateTime.MinValue;
         }
 
         private DateTime _now;

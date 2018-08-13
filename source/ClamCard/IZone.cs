@@ -4,5 +4,6 @@
     {
         decimal CostPerSingleJourney { get; }
         decimal CostPerDayLimit { get; }
+        decimal CostPerWeekLimit { get; }
     }
 }

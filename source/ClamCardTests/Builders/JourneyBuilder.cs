@@ -2,6 +2,7 @@
 using ClamCard.Implementations;
 using ClamCard.Models;
 using NSubstitute;
+using System;
 
 namespace ClamCardTests.Builders
 {
@@ -24,6 +25,7 @@ namespace ClamCardTests.Builders
 
         private IStation _fromStation;
         private IStation _toStation;
+        private DateTime _date;
         private decimal _cost;
 
         public JourneyBuilder WithFromStation(IStation station)
@@ -38,6 +40,12 @@ namespace ClamCardTests.Builders
             return this;
         }
 
+        public JourneyBuilder WithDate(DateTime value)
+        {
+            _date = value;
+            return this;
+        }
+
         public JourneyBuilder WithCost(decimal value)
         {
             _cost = value;
@@ -48,6 +56,7 @@ namespace ClamCardTests.Builders
         {
             return new Journey
             {
+                Date = _date,
                 From = _fromStation,
                 To = _toStation,
                 Cost = _cost
