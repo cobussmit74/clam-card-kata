@@ -44,6 +44,7 @@ namespace ClamCard.Implementations
         {
             var journey = new Journey
             {
+                Date = _dateTimeProvider.Now.Date,
                 From = CurrentJourneyStartFrom,
                 To = station,
                 Cost = CalculateCostForCurrentJourney(station)

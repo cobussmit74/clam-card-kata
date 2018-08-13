@@ -136,9 +136,9 @@ namespace ClamCardTests
                 var stationFrom = StationBuilder.Create()
                     .Build();
                 var card = CardBuilder.Create()
-                    .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
+                card.StartJourney(stationFrom);
                 var actual = card.EndJourney(stationTo);
                 //assert
                 Expect(actual).To.Not.Be.Null();
@@ -153,16 +153,16 @@ namespace ClamCardTests
                 var stationFrom = StationBuilder.Create()
                     .Build();
                 var card = CardBuilder.Create()
-                    .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
+                card.StartJourney(stationFrom);
                 card.EndJourney(stationTo);
                 //assert
                 Expect(card.CurrentJourneyStartFrom).To.Be.Null();
             }
 
             [Test]
-            public void GivenStation_WithJourneyUnderway_ReturnsJourneyWithDetails()
+            public void GivenStation_WithJourneyUnderway_ReturnsJourneyWithStations()
             {
                 //arrange
                 var stationTo = StationBuilder.Create()
@@ -170,9 +170,9 @@ namespace ClamCardTests
                 var stationFrom = StationBuilder.Create()
                     .Build();
                 var card = CardBuilder.Create()
-                    .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
+                card.StartJourney(stationFrom);
                 var actual = card.EndJourney(stationTo);
                 //assert
                 Expect(actual.From).To.Be(stationFrom);
@@ -180,15 +180,35 @@ namespace ClamCardTests
             }
 
             [Test]
-            public void GivenSameStationAsJounreyStart_ReturnsNull()
+            public void GivenStation_WithJourneyUnderway_ReturnsJourneyWithDate()
+            {
+                //arrange
+                var today = new DateTime(2018, 8, 12, 13, 14, 15);
+
+                var stationTo = StationBuilder.Create()
+                    .Build();
+                var stationFrom = StationBuilder.Create()
+                    .Build();
+                var card = CardBuilder.Create()
+                    .WithDateTimeProviderFor(today)
+                    .Build();
+                //act
+                card.StartJourney(stationFrom);
+                var actual = card.EndJourney(stationTo);
+                //assert
+                Expect(actual.Date).To.Equal(today.Date);
+            }
+
+            [Test]
+            public void GivenSameStationAsJourneyStart_ReturnsNull()
             {
                 //arrange
                 var stationFrom = StationBuilder.Create()
                     .Build();
                 var card = CardBuilder.Create()
-                    .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
+                card.StartJourney(stationFrom);
                 var actual = card.EndJourney(stationFrom);
                 //assert
                 Expect(actual).To.Be.Null();
@@ -203,9 +223,9 @@ namespace ClamCardTests
                 var stationFrom = StationBuilder.Create()
                     .Build();
                 var card = CardBuilder.Create()
-                    .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
+                card.StartJourney(stationFrom);
                 var actual = card.EndJourney(stationTo);
                 //assert
                 Expect(card.JourneyHistory.AsEnumerable()).To.Contain(actual);
@@ -268,9 +288,9 @@ namespace ClamCardTests
                             .Build();
 
                     var card = CardBuilder.Create()
-                        .WithJourneyStartedFrom(stationFrom)
                         .Build();
 
+                    card.StartJourney(stationFrom);
                     return card.EndJourney(stationTo);
                 }
             }

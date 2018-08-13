@@ -25,6 +25,16 @@ namespace ClamCardTests.Builders
             return Create().Build();
         }
 
+        public static IDateTimeProvider BuildFor(DateTime value)
+        {
+            return Create().WithNow(value).Build();
+        }
+
+        public static IDateTimeProvider BuildFor(int year, int month, int day)
+        {
+            return Create().WithNow(year, month, day).Build();
+        }
+
         public FakeDateTimeProviderBuilder WithNow(DateTime value)
         {
             _now = value;
