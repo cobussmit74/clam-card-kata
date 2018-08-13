@@ -4,6 +4,8 @@ using static NExpect.Expectations;
 using ClamCardTests.Builders;
 using System;
 using System.Linq;
+using NSubstitute;
+using ClamCard;
 
 namespace ClamCardTests
 {
@@ -59,12 +61,11 @@ namespace ClamCardTests
                 //arrange
                 var station = new StationBuilder()
                     .Build();
-                var card = new CardBuilder()
-                    .Build();
+                var card = Substitute.For<ICard>();
                 //act
                 station.SwipeIn(card);
                 //assert
-                Expect(card.CurrentJourneyStartFrom).To.Be(station);
+                card.Received(1).StartJourney(station);
             }
         }
 
@@ -86,20 +87,18 @@ namespace ClamCardTests
             }
 
             [Test]
-            public void GivenCard_WithJourneyUnderway_ShouldEndJouneyAtThatStation()
+            public void GivenCard_ShouldEndJouneyAtThatStation()
             {
                 //arrange
-                var stationFrom = new StationBuilder()
+                var journey = new JourneyBuilder().Build();
+                var station = new StationBuilder()
                     .Build();
-                var stationTo = new StationBuilder()
-                    .Build();
-                var card = new CardBuilder()
-                    .WithJourneyStartedFrom(stationFrom)
-                    .Build();
+                var card = Substitute.For<ICard>();
+                card.EndJourney(station).Returns(journey);
                 //act
-                var actual = stationTo.SwipeOut(card);
+                var actual = station.SwipeOut(card);
                 //assert
-                Expect(actual.To).To.Be(stationTo);
+                Expect(actual).To.Be(journey);
             }
         }
     }
