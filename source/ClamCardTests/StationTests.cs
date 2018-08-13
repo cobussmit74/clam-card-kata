@@ -90,7 +90,7 @@ namespace ClamCardTests
             public void GivenCard_ShouldEndJouneyAtThatStation()
             {
                 //arrange
-                var journey = JourneyBuilder.CreateDefault();
+                var journey = JourneyBuilder.BuildDefault();
                 var station = StationBuilder.Create()
                     .Build();
                 var card = Substitute.For<ICard>();

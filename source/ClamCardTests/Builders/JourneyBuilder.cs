@@ -17,7 +17,7 @@ namespace ClamCardTests.Builders
         {
             return new JourneyBuilder();
         }
-        public static Journey CreateDefault()
+        public static Journey BuildDefault()
         {
             return Create().Build();
         }

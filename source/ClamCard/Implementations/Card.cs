@@ -8,12 +8,16 @@ namespace ClamCard.Implementations
 {
     public class Card : ICard
     {
-        public Card(IEnumerable<Journey> journeyHistory)
+        public Card(
+            IDateTimeProvider dateTimeProvider,
+            IEnumerable<Journey> journeyHistory)
         {
             if (journeyHistory == null) throw new ArgumentNullException(nameof(journeyHistory));
             _journeyHistory = new List<Journey>(journeyHistory);
+            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
         }
 
+        private IDateTimeProvider _dateTimeProvider;
         private List<Journey> _journeyHistory = new List<Journey>();
 
         public IStation CurrentJourneyStartFrom { get; private set; }

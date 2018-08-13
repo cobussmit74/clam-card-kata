@@ -36,6 +36,18 @@ namespace ClamCardTests
                     .With.Property(err => err.ParamName)
                     .Equal.To("journeyHistory"); ;
             }
+
+            [Test]
+            public void GivenNullDateTimeProvider_ShouldThrow()
+            {
+                //arrange
+                //act
+                //assert
+                Expect(() => CardBuilder.Create().WithNullDateTimeProvider().Build())
+                    .To.Throw<ArgumentNullException>()
+                    .With.Property(err => err.ParamName)
+                    .Equal.To("dateTimeProvider"); ;
+            }
         }
 
         [TestFixture]
@@ -221,7 +233,7 @@ namespace ClamCardTests
                 public class FromOneZoneToAnother
                 {
                     [Test]
-                    public void ReturnsJourney_WithCostOfSingleJourneyFromMostExpensiveZone_LowestFirst()
+                    public void GivenStartFromCheapZone_ReturnsJourney_WithCostOfSingleJourneyFromEndZone()
                     {
                         //arrange
                         var costStart = 2.5m;
@@ -233,7 +245,7 @@ namespace ClamCardTests
                     }
 
                     [Test]
-                    public void ReturnsJourney_WithCostOfSingleJourneyFromMostExpensiveZone_HighestFirst()
+                    public void GivenStartFromExpensiveZone_ReturnsJourney_WithCostOfSingleJourneyFromStartZone()
                     {
                         //arrange
                         var costStart = 3m;
@@ -273,7 +285,7 @@ namespace ClamCardTests
                     public class OnSameDay
                     {
                         [Test]
-                        public void ShouldNotExceedCostPerDayLimitOfZone()
+                        public void ReturnsJourney_WithCostNotExceedingCostPerDayLimitOfZone()
                         {
                             //arrange
                             var costPerJourney = 2.5m;
@@ -318,7 +330,7 @@ namespace ClamCardTests
                     public class OnSameDay
                     {
                         [Test]
-                        public void ShouldNotExceedCostPerDayLimitOfMostExpensiveZone()
+                        public void ReturnsJourney_WithCostNotExceedingCostPerDayLimitOfMostExpensiveZone()
                         {
                             //arrange
                             var costFirstJourney = 3m;

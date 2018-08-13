@@ -13,6 +13,7 @@ namespace ClamCardTests.Builders
         {
             _currentJourneyStartFrom = null;
             _journeyHistory = new List<Journey>();
+            _dateTimeProvider = FakeDateTimeProviderBuilder.BuildDefault();
         }
 
         public static CardBuilder Create()
@@ -21,6 +22,7 @@ namespace ClamCardTests.Builders
         }
 
         private List<Journey> _journeyHistory;
+        private IDateTimeProvider _dateTimeProvider;
         private IStation _currentJourneyStartFrom;
 
         public CardBuilder WithJourneyStartedFrom(Station from)
@@ -41,9 +43,21 @@ namespace ClamCardTests.Builders
             return this;
         }
 
+        public CardBuilder WithNullDateTimeProvider()
+        {
+            _dateTimeProvider = null;
+            return this;
+        }
+
+        public CardBuilder WithDateTimeProvider(IDateTimeProvider value)
+        {
+            _dateTimeProvider = value;
+            return this;
+        }
+
         public Card Build()
         {
-            var card = new Card(_journeyHistory);
+            var card = new Card(_dateTimeProvider, _journeyHistory);
 
             if (_currentJourneyStartFrom != null) card.StartJourney(_currentJourneyStartFrom);
 
