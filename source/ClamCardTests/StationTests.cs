@@ -21,7 +21,7 @@ namespace ClamCardTests
                 //arrange
                 //act
                 //assert
-                Expect(() => new StationBuilder().Build())
+                Expect(() => StationBuilder.Create().Build())
                     .To.Not.Throw();
             }
 
@@ -31,7 +31,7 @@ namespace ClamCardTests
                 //arrange
                 //act
                 //assert
-                Expect(() => new StationBuilder().WithZone(null).Build())
+                Expect(() => StationBuilder.Create().WithZone(null).Build())
                     .To.Throw<ArgumentNullException>()
                     .With.Property(err => err.ParamName)
                     .Equal.To("zone");
@@ -45,7 +45,7 @@ namespace ClamCardTests
             public void GivenNull_ShouldThrow()
             {
                 //arrange
-                var station = new StationBuilder()
+                var station = StationBuilder.Create()
                     .Build();
                 //act
                 //assert
@@ -59,7 +59,7 @@ namespace ClamCardTests
             public void GivenCard_ShouldStartJouneyFromThatStation()
             {
                 //arrange
-                var station = new StationBuilder()
+                var station = StationBuilder.Create()
                     .Build();
                 var card = Substitute.For<ICard>();
                 //act
@@ -76,7 +76,7 @@ namespace ClamCardTests
             public void GivenNull_ShouldThrow()
             {
                 //arrange
-                var station = new StationBuilder()
+                var station = StationBuilder.Create()
                     .Build();
                 //act
                 //assert
@@ -90,8 +90,8 @@ namespace ClamCardTests
             public void GivenCard_ShouldEndJouneyAtThatStation()
             {
                 //arrange
-                var journey = new JourneyBuilder().Build();
-                var station = new StationBuilder()
+                var journey = JourneyBuilder.CreateDefault();
+                var station = StationBuilder.Create()
                     .Build();
                 var card = Substitute.For<ICard>();
                 card.EndJourney(station).Returns(journey);

@@ -5,6 +5,7 @@ using ClamCardTests.Builders;
 using System;
 using ClamCard.Exceptions;
 using ClamCard.Models;
+using System.Linq;
 
 namespace ClamCardTests
 {
@@ -20,8 +21,20 @@ namespace ClamCardTests
                 //arrange
                 //act
                 //assert
-                Expect(() => new CardBuilder().Build())
+                Expect(() => CardBuilder.Create().Build())
                     .To.Not.Throw();
+            }
+
+            [Test]
+            public void GivenNullJourneyHistory_ShouldThrow()
+            {
+                //arrange
+                //act
+                //assert
+                Expect(() => CardBuilder.Create().WithNullJourneyHistory().Build())
+                    .To.Throw<ArgumentNullException>()
+                    .With.Property(err => err.ParamName)
+                    .Equal.To("journeyHistory"); ;
             }
         }
 
@@ -32,7 +45,7 @@ namespace ClamCardTests
             public void GivenNull_ShouldThrow()
             {
                 //arrange
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .Build();
                 //act
                 //assert
@@ -46,9 +59,9 @@ namespace ClamCardTests
             public void GivenStation_SetsCurrentJourneyStartFrom()
             {
                 //arrange
-                var station = new StationBuilder()
+                var station = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .Build();
                 //act
                 card.StartJourney(station);
@@ -61,9 +74,9 @@ namespace ClamCardTests
             public void GivenStation_WithJourneyAlreadyUnderway_ThrowsJourneyException()
             {
                 //arrange
-                var station = new StationBuilder()
+                var station = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .Build();
                 //act
                 card.StartJourney(station);
@@ -79,7 +92,7 @@ namespace ClamCardTests
             public void GivenNull_ShouldThrow()
             {
                 //arrange
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .Build();
                 //act
                 //assert
@@ -93,9 +106,9 @@ namespace ClamCardTests
             public void GivenStation_WithJourneyNoUnderway_ThrowsJourneyException()
             {
                 //arrange
-                var station = new StationBuilder()
+                var station = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .Build();
                 //act
                 //assert
@@ -106,11 +119,11 @@ namespace ClamCardTests
             public void GivenStation_WithJourneyUnderway_ReturnsJourney()
             {
                 //arrange
-                var stationTo = new StationBuilder()
+                var stationTo = StationBuilder.Create()
                     .Build();
-                var stationFrom = new StationBuilder()
+                var stationFrom = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
@@ -123,11 +136,11 @@ namespace ClamCardTests
             public void GivenStation_WithJourneyUnderway_ClearsCurrentJourneyStartFrom()
             {
                 //arrange
-                var stationTo = new StationBuilder()
+                var stationTo = StationBuilder.Create()
                     .Build();
-                var stationFrom = new StationBuilder()
+                var stationFrom = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
@@ -140,11 +153,11 @@ namespace ClamCardTests
             public void GivenStation_WithJourneyUnderway_ReturnsJourneyWithDetails()
             {
                 //arrange
-                var stationTo = new StationBuilder()
+                var stationTo = StationBuilder.Create()
                     .Build();
-                var stationFrom = new StationBuilder()
+                var stationFrom = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
@@ -158,9 +171,9 @@ namespace ClamCardTests
             public void GivenSameStationAsJounreyStart_ReturnsNull()
             {
                 //arrange
-                var stationFrom = new StationBuilder()
+                var stationFrom = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
@@ -173,77 +186,179 @@ namespace ClamCardTests
             public void GivenStation_WithJourneyUnderway_AddsJourneyToHistory()
             {
                 //arrange
-                var stationTo = new StationBuilder()
+                var stationTo = StationBuilder.Create()
                     .Build();
-                var stationFrom = new StationBuilder()
+                var stationFrom = StationBuilder.Create()
                     .Build();
-                var card = new CardBuilder()
+                var card = CardBuilder.Create()
                     .WithJourneyStartedFrom(stationFrom)
                     .Build();
                 //act
                 var actual = card.EndJourney(stationTo);
                 //assert
-                Expect(card.JourneyHistory).To.Contain(actual);
+                Expect(card.JourneyHistory.AsEnumerable()).To.Contain(actual);
             }
 
             [TestFixture]
-            public class GivenSingleJourney_WithinSameZone
+            public class GivenSingleJourney
             {
-                [Test]
-                public void ReturnsJourney_WithCostOfSingleJourneyFromZone()
+                [TestFixture]
+                public class WithinSameZone
                 {
-                    //arrange
-                    var cost = 2.5m;
-                    //act
-                    var actual = CreateSingleJourneyWithZoneCost(cost, cost);
-                    //assert
-                    Expect(actual.Cost).To.Equal(cost);
+                    [Test]
+                    public void ReturnsJourney_WithCostOfSingleJourneyFromZone()
+                    {
+                        //arrange
+                        var cost = 2.5m;
+                        //act
+                        var actual = CreateSingleJourneyWithZoneCost(cost, cost);
+                        //assert
+                        Expect(actual.Cost).To.Equal(cost);
+                    }
+                }
+
+                [TestFixture]
+                public class FromOneZoneToAnother
+                {
+                    [Test]
+                    public void ReturnsJourney_WithCostOfSingleJourneyFromMostExpensiveZone_LowestFirst()
+                    {
+                        //arrange
+                        var costStart = 2.5m;
+                        var costEnd = 3m;
+                        //act
+                        var actual = CreateSingleJourneyWithZoneCost(costStart, costEnd);
+                        //assert
+                        Expect(actual.Cost).To.Equal(costEnd);
+                    }
+
+                    [Test]
+                    public void ReturnsJourney_WithCostOfSingleJourneyFromMostExpensiveZone_HighestFirst()
+                    {
+                        //arrange
+                        var costStart = 3m;
+                        var costEnd = 2.5m;
+                        //act
+                        var actual = CreateSingleJourneyWithZoneCost(costStart, costEnd);
+                        //assert
+                        Expect(actual.Cost).To.Equal(costStart);
+                    }
+                }
+
+                private static Journey CreateSingleJourneyWithZoneCost(decimal from, decimal to)
+                {
+                    var stationFrom = StationBuilder.Create()
+                            .WithZoneWithCostPerSingleJourney(from)
+                            .Build();
+
+                    var stationTo = StationBuilder.Create()
+                            .WithZoneWithCostPerSingleJourney(to)
+                            .Build();
+
+                    var card = CardBuilder.Create()
+                        .WithJourneyStartedFrom(stationFrom)
+                        .Build();
+
+                    return card.EndJourney(stationTo);
                 }
             }
 
             [TestFixture]
-            public class GivenSingleJourney_FromOneZoneToAnother
+            public class GivenMultipleJourneys
             {
-                [Test]
-                public void ReturnsJourney_WithCostOfSingleJourneyFromMostExpensiveZone_LowestFirst()
+                [TestFixture]
+                public class InSameZone
                 {
-                    //arrange
-                    var costStart = 2.5m;
-                    var costEnd = 3m;
-                    //act
-                    var actual = CreateSingleJourneyWithZoneCost(costStart, costEnd);
-                    //assert
-                    Expect(actual.Cost).To.Equal(costEnd);
+                    [TestFixture]
+                    public class OnSameDay
+                    {
+                        [Test]
+                        public void ShouldNotExceedCostPerDayLimitOfZone()
+                        {
+                            //arrange
+                            var costPerJourney = 2.5m;
+                            var costFirstJourney = costPerJourney;
+                            var limitPerDay = 4.5m;
+                            var expectedCostSecondJourney = 2m;
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+
+                            var zone = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerDayLimit(limitPerDay)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+                    }
                 }
 
-                [Test]
-                public void ReturnsJourney_WithCostOfSingleJourneyFromMostExpensiveZone_HighestFirst()
+                [TestFixture]
+                public class FromOneZoneToAnother
                 {
-                    //arrange
-                    var costStart = 3m; 
-                    var costEnd = 2.5m;
-                    //act
-                    var actual = CreateSingleJourneyWithZoneCost(costStart, costEnd);
-                    //assert
-                    Expect(actual.Cost).To.Equal(costStart);
+                    [TestFixture]
+                    public class OnSameDay
+                    {
+                        [Test]
+                        public void ShouldNotExceedCostPerDayLimitOfMostExpensiveZone()
+                        {
+                            //arrange
+                            var costFirstJourney = 3m;
+                            var expectedCostSecondJourney = 2m;
+
+                            var zone1 = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(3)
+                                .WithCostPerDayLimit(4)
+                                .Build();
+
+                            var zone2 = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(4)
+                                .WithCostPerDayLimit(5)
+                                .Build();
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+                            
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone1)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone2)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+                    }
                 }
-            }
-
-            private static Journey CreateSingleJourneyWithZoneCost(decimal from, decimal to)
-            {
-                var stationFrom = new StationBuilder()
-                        .WithZoneWithCostPerSingleJourney(from)
-                        .Build();
-
-                var stationTo = new StationBuilder()
-                        .WithZoneWithCostPerSingleJourney(to)
-                        .Build();
-
-                var card = new CardBuilder()
-                    .WithJourneyStartedFrom(stationFrom)
-                    .Build();
-
-                return card.EndJourney(stationTo);
             }
         }
     }

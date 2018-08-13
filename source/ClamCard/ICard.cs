@@ -8,6 +8,6 @@ namespace ClamCard
         IStation CurrentJourneyStartFrom { get; }
         void StartJourney(IStation station);
         Journey EndJourney(IStation station);
-        IList<Journey> JourneyHistory { get; }
+        IReadOnlyList<Journey> JourneyHistory { get; }
     }
 }

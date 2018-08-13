@@ -7,14 +7,24 @@ namespace ClamCardTests.Builders
 {
     public class JourneyBuilder
     {
-        public JourneyBuilder()
+        private JourneyBuilder()
         {
             _fromStation = Substitute.For<IStation>();
             _toStation = Substitute.For<IStation>();
         }
 
+        public static JourneyBuilder Create()
+        {
+            return new JourneyBuilder();
+        }
+        public static Journey CreateDefault()
+        {
+            return Create().Build();
+        }
+
         private IStation _fromStation;
         private IStation _toStation;
+        private decimal _cost;
 
         public JourneyBuilder WithFromStation(IStation station)
         {
@@ -28,12 +38,19 @@ namespace ClamCardTests.Builders
             return this;
         }
 
+        public JourneyBuilder WithCost(decimal value)
+        {
+            _cost = value;
+            return this;
+        }
+
         public Journey Build()
         {
             return new Journey
             {
                 From = _fromStation,
-                To = _toStation
+                To = _toStation,
+                Cost = _cost
             };
         }
     }

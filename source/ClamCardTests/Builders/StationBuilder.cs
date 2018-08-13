@@ -6,9 +6,14 @@ namespace ClamCardTests.Builders
 {
     class StationBuilder
     {
-        public StationBuilder()
+        private StationBuilder()
         {
             _zone = Substitute.For<IZone>();
+        }
+
+        public static StationBuilder Create()
+        {
+            return new StationBuilder();
         }
 
         private IZone _zone;
@@ -21,8 +26,10 @@ namespace ClamCardTests.Builders
 
         public StationBuilder WithZoneWithCostPerSingleJourney(decimal value)
         {
-            _zone = Substitute.For<IZone>();
-            _zone.CostPerSingleJourney.Returns(value);
+            _zone = FakeZoneBuilder
+                .Create()
+                .WithCostPerSingleJourney(value)
+                .Build();
             return this;
         }
 

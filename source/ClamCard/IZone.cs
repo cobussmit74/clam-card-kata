@@ -3,5 +3,6 @@
     public interface IZone
     {
         decimal CostPerSingleJourney { get; }
+        decimal CostPerDayLimit { get; }
     }
 }
