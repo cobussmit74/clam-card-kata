@@ -20,10 +20,10 @@ namespace ClamCard.Extensions
                 .SumCost();
         }
 
-        public static decimal SumCostOfJourneysTakenInWeek(this IEnumerable<Journey> journeys, int weekNumber)
+        public static decimal SumCostOfJourneysTakenInWeek(this IEnumerable<Journey> journeys, int year, int weekNumber)
         {
             return journeys
-                .Where(j => j.Date.WeekOfYear() == weekNumber)
+                .Where(j => j.Date.Year == year && j.Date.WeekOfYear() == weekNumber)
                 .SumCost();
         }
     }

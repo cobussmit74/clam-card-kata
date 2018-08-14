@@ -350,6 +350,7 @@ namespace ClamCardTests
                         {
                             //arrange
                             var costPerJourney = 2.5m;
+                            var limitPerDay = 4.5m;
                             var dateOfFirstJourney = new DateTime(2018, 8, 6);
                             var costFirstJourney = costPerJourney;
                             var dateOfSecondJourney = dateOfFirstJourney.AddDays(1);
@@ -368,6 +369,7 @@ namespace ClamCardTests
                             var zone = FakeZoneBuilder
                                 .Create()
                                 .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerDayLimit(limitPerDay)
                                 .Build();
 
                             var stationStart = StationBuilder.Create()
@@ -391,9 +393,53 @@ namespace ClamCardTests
                             var costPerJourney = 2.5m;
                             var dateOfFirstJourney = new DateTime(2018, 8, 6);
                             var costFirstJourney = 8m;
+                            var limitPerDay = 4.5m;
                             var limitPerWeek = 10m;
                             var dateOfSecondJourney = dateOfFirstJourney.AddDays(1);
                             var expectedCostSecondJourney = 2m;
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithDate(dateOfFirstJourney)
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+
+                            var zone = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerDayLimit(limitPerDay)
+                                .WithCostPerWeekLimit(limitPerWeek)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+
+                        [Test]
+                        public void GivenSecondJourneyInSameWeek_ButNotSameYear_ShouldReturnJourney_WithFullCostOfSingleJourney()
+                        {
+                            //arrange
+                            var costPerJourney = 2.5m;
+                            var costFirstJourney = 8m;
+                            var limitPerDay = 4.5m;
+                            var limitPerWeek = 10m;
+                            var dateOfFirstJourney = new DateTime(2017, 1, 1);
+                            var dateOfSecondJourney = dateOfFirstJourney.AddYears(1);
+                            var expectedCostSecondJourney = costPerJourney;
 
                             var firstJourney = JourneyBuilder.Create()
                                 .WithDate(dateOfFirstJourney)

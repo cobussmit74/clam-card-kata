@@ -62,15 +62,16 @@ namespace ClamCard.Implementations
             var costPerDayLimit = CostPerDayLimit(CurrentJourneyStartFrom, endStation);
             var costPerWeekLimit = CostPerWeekLimit(CurrentJourneyStartFrom, endStation);
 
+            var currentDate = _dateTimeProvider.Now.Date;
             var amountAlreadyChargedToday = _journeyHistory
-                .SumCostOfJourneysTakenOnDay(_dateTimeProvider.Now);
+                .SumCostOfJourneysTakenOnDay(currentDate);
 
             var amountAlreadyChargedThisWeek = _journeyHistory
-                .SumCostOfJourneysTakenInWeek(_dateTimeProvider.Now.WeekOfYear());
+                .SumCostOfJourneysTakenInWeek(currentDate.Year, currentDate.WeekOfYear());
 
             journeyCost = LimitCostToMaxAmount(journeyCost, costPerDayLimit, amountAlreadyChargedToday);
             journeyCost = LimitCostToMaxAmount(journeyCost, costPerWeekLimit, amountAlreadyChargedThisWeek);
-            
+
             return journeyCost;
         }
 
