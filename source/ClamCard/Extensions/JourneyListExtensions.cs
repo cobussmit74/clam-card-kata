@@ -8,7 +8,7 @@ namespace ClamCard.Extensions
 {
     public static class JourneyListExtensions
     {
-        public static decimal SumCost(this IEnumerable<Journey> journeys)
+        private static decimal SumCost(this IEnumerable<Journey> journeys)
         {
             return journeys.Sum(j => j.Cost);
         }
@@ -32,6 +32,20 @@ namespace ClamCard.Extensions
             return journeys
                 .Where(j => j.Date.Year == year && j.Date.Month == month)
                 .SumCost();
+        }
+
+        public static (decimal day, decimal week, decimal month) SumCostOfPreviousJourneys(this IEnumerable<Journey> journeys, DateTime currentDate)
+        {
+            var amountAlreadyChargedToday = journeys
+                .SumCostOfJourneysTakenOnDay(currentDate);
+
+            var amountAlreadyChargedThisWeek = journeys
+                .SumCostOfJourneysTakenInWeek(currentDate.Year, currentDate.WeekOfYear());
+
+            var amountAlreadyChargedThisMonth = journeys
+                .SumCostOfJourneysTakenInMonth(currentDate.Year, currentDate.Month);
+
+            return (amountAlreadyChargedToday, amountAlreadyChargedThisWeek, amountAlreadyChargedThisMonth);
         }
     }
 }

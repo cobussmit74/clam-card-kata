@@ -58,20 +58,15 @@ namespace ClamCard.Implementations
 
         private decimal CalculateCostForCurrentJourney(IStation endStation)
         {
-            var journeyCost = CostPerSingleJourney(CurrentJourneyStartFrom, endStation);
-            var costPerDayLimit = CostPerDayLimit(CurrentJourneyStartFrom, endStation);
-            var costPerWeekLimit = CostPerWeekLimit(CurrentJourneyStartFrom, endStation);
-            var costPerMonthLimit = CostPerMonthLimit(CurrentJourneyStartFrom, endStation);
+            var startZone = CurrentJourneyStartFrom.Zone;
+            var endZone = endStation.Zone;
 
-            var currentDate = _dateTimeProvider.Now.Date;
-            var amountAlreadyChargedToday = _journeyHistory
-                .SumCostOfJourneysTakenOnDay(currentDate);
-
-            var amountAlreadyChargedThisWeek = _journeyHistory
-                .SumCostOfJourneysTakenInWeek(currentDate.Year, currentDate.WeekOfYear());
-
-            var amountAlreadyChargedThisMonth = _journeyHistory
-                .SumCostOfJourneysTakenInMonth(currentDate.Year, currentDate.Month);
+            var journeyCost = CostPerSingleJourney(startZone, endZone);
+            var (costPerDayLimit, costPerWeekLimit, costPerMonthLimit) = CostLimits(startZone, endZone);
+            
+            var(amountAlreadyChargedToday, amountAlreadyChargedThisWeek, amountAlreadyChargedThisMonth) = 
+                _journeyHistory
+                .SumCostOfPreviousJourneys(_dateTimeProvider.Now.Date);
 
             journeyCost = LimitCostToMaxAmount(journeyCost, costPerDayLimit, amountAlreadyChargedToday);
             journeyCost = LimitCostToMaxAmount(journeyCost, costPerWeekLimit, amountAlreadyChargedThisWeek);
@@ -86,32 +81,41 @@ namespace ClamCard.Implementations
             _journeyHistory.Add(theCompletedJourney);
         }
 
-        private static decimal CostPerSingleJourney(IStation startStation, IStation endStation)
+        private static decimal CostPerSingleJourney(IZone startZone, IZone endZone)
         {
-            var costAtStartZone = startStation.Zone.CostPerSingleJourney;
-            var costAtEndZone = endStation.Zone.CostPerSingleJourney;
-            return Math.Max(costAtStartZone, costAtEndZone);
+            return Math.Max(
+                startZone.CostPerSingleJourney,
+                endZone.CostPerSingleJourney);
         }
 
-        private static decimal CostPerDayLimit(IStation startStation, IStation endStation)
+        private static decimal CostPerDayLimit(IZone startZone, IZone endZone)
         {
-            var costAtStartZone = startStation.Zone.CostPerDayLimit;
-            var costAtEndZone = endStation.Zone.CostPerDayLimit;
-            return Math.Max(costAtStartZone, costAtEndZone);
+            return Math.Max(
+                startZone.CostPerDayLimit,
+                endZone.CostPerDayLimit);
         }
 
-        private static decimal CostPerWeekLimit(IStation startStation, IStation endStation)
+        private static decimal CostPerWeekLimit(IZone startZone, IZone endZone)
         {
-            var costAtStartZone = startStation.Zone.CostPerWeekLimit;
-            var costAtEndZone = endStation.Zone.CostPerWeekLimit;
-            return Math.Max(costAtStartZone, costAtEndZone);
+            return Math.Max(
+                startZone.CostPerWeekLimit,
+                endZone.CostPerWeekLimit);
         }
 
-        private static decimal CostPerMonthLimit(IStation startStation, IStation endStation)
+        private static decimal CostPerMonthLimit(IZone startZone, IZone endZone)
         {
-            var costAtStartZone = startStation.Zone.CostPerMonthLimit;
-            var costAtEndZone = endStation.Zone.CostPerMonthLimit;
-            return Math.Max(costAtStartZone, costAtEndZone);
+            return Math.Max(
+                startZone.CostPerMonthLimit,
+                endZone.CostPerMonthLimit);
+        }
+
+        private static (decimal day, decimal week, decimal month) CostLimits(IZone startZone, IZone endZone)
+        {
+            var costPerDayLimit = CostPerDayLimit(startZone, endZone);
+            var costPerWeekLimit = CostPerWeekLimit(startZone, endZone);
+            var costPerMonthLimit = CostPerMonthLimit(startZone, endZone);
+
+            return (costPerDayLimit, costPerWeekLimit, costPerMonthLimit);
         }
 
         private static decimal LimitCostToMaxAmount(decimal cost, decimal costUpperLimit, decimal amountAlreadyCharged)
