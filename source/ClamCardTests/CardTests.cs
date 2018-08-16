@@ -346,47 +346,6 @@ namespace ClamCardTests
                     public class InSameWeek
                     {
                         [Test]
-                        public void GivenSecondJourneyNotOnSameDayAsFirst_ShouldReturnJourney_WithFullCostOfSingleJourney()
-                        {
-                            //arrange
-                            var costPerJourney = 2.5m;
-                            var limitPerDay = 4.5m;
-                            var dateOfFirstJourney = new DateTime(2018, 8, 6);
-                            var costFirstJourney = costPerJourney;
-                            var dateOfSecondJourney = dateOfFirstJourney.AddDays(1);
-                            var expectedCostSecondJourney = costPerJourney;
-
-                            var firstJourney = JourneyBuilder.Create()
-                                .WithDate(dateOfFirstJourney)
-                                .WithCost(costFirstJourney)
-                                .Build();
-
-                            var card = CardBuilder.Create()
-                                .WithDateTimeProviderFor(dateOfSecondJourney)
-                                .WithJourneyHistory(firstJourney)
-                                .Build();
-
-                            var zone = FakeZoneBuilder
-                                .Create()
-                                .WithCostPerSingleJourney(costPerJourney)
-                                .WithCostPerDayLimit(limitPerDay)
-                                .Build();
-
-                            var stationStart = StationBuilder.Create()
-                                .WithZone(zone)
-                                .Build();
-
-                            var stationEnd = StationBuilder.Create()
-                                .WithZone(zone)
-                                .Build();
-                            //act
-                            card.StartJourney(stationStart);
-                            var actual = card.EndJourney(stationEnd);
-                            //assert
-                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
-                        }
-
-                        [Test]
                         public void ShouldReturnJourney_WithCostNotExceedingCostPerWeekLimitOfZone()
                         {
                             //arrange
@@ -430,12 +389,52 @@ namespace ClamCardTests
                         }
 
                         [Test]
+                        public void GivenSecondJourneyNotOnSameDayAsFirst_WithCostBelowWeekMax_ShouldReturnJourney_WithFullCostOfSingleJourney()
+                        {
+                            //arrange
+                            var costPerJourney = 2.5m;
+                            var limitPerDay = 4.5m;
+                            var dateOfFirstJourney = new DateTime(2018, 8, 6);
+                            var costFirstJourney = costPerJourney;
+                            var dateOfSecondJourney = dateOfFirstJourney.AddDays(1);
+                            var expectedCostSecondJourney = costPerJourney;
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithDate(dateOfFirstJourney)
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+
+                            var zone = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerDayLimit(limitPerDay)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+                        
+                        [Test]
                         public void GivenSecondJourneyInSameWeek_ButNotSameYear_ShouldReturnJourney_WithFullCostOfSingleJourney()
                         {
                             //arrange
                             var costPerJourney = 2.5m;
                             var costFirstJourney = 8m;
-                            var limitPerDay = 4.5m;
                             var limitPerWeek = 10m;
                             var dateOfFirstJourney = new DateTime(2017, 1, 1);
                             var dateOfSecondJourney = dateOfFirstJourney.AddYears(1);
@@ -455,6 +454,139 @@ namespace ClamCardTests
                                 .Create()
                                 .WithCostPerSingleJourney(costPerJourney)
                                 .WithCostPerWeekLimit(limitPerWeek)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+                    }
+
+                    [TestFixture]
+                    public class InSameMonth
+                    {
+                        [Test]
+                        public void ShouldReturnJourney_WithCostNotExceedingCostPerMonthLimitOfZone()
+                        {
+                            //arrange
+                            var costPerJourney = 2.5m;
+                            var dateOfFirstJourney = new DateTime(2018, 8, 6);
+                            var costFirstJourney = 18m;
+                            var limitPerDay = 4.5m;
+                            var limitPerWeek = 10m;
+                            var limitPerMonth = 20m;
+                            var dateOfSecondJourney = dateOfFirstJourney.AddDays(7);
+                            var expectedCostSecondJourney = 2m;
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithDate(dateOfFirstJourney)
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+
+                            var zone = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerDayLimit(limitPerDay)
+                                .WithCostPerWeekLimit(limitPerWeek)
+                                .WithCostPerMonthLimit(limitPerMonth)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+
+                        [Test]
+                        public void GivenSecondJourneyNotInSameDayOrWeekAsFirst_WithCostBelowMonthMax_ShouldReturnJourney_WithFullCostOfSingleJourney()
+                        {
+                            //arrange
+                            var costPerJourney = 2.5m;
+                            var limitPerDay = 4.5m;
+                            var limitPerWeek = 4.5m;
+                            var dateOfFirstJourney = new DateTime(2018, 8, 6);
+                            var costFirstJourney = costPerJourney;
+                            var dateOfSecondJourney = dateOfFirstJourney.AddDays(7);
+                            var expectedCostSecondJourney = costPerJourney;
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithDate(dateOfFirstJourney)
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+
+                            var zone = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerDayLimit(limitPerDay)
+                                .WithCostPerWeekLimit(limitPerWeek)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+
+                        [Test]
+                        public void GivenSecondJourneyInSameMonth_ButNotSameYear_ShouldReturnJourney_WithFullCostOfSingleJourney()
+                        {
+                            //arrange
+                            var costPerJourney = 2.5m;
+                            var costFirstJourney = 18m;
+                            var limitPerMonth = 20m;
+                            var dateOfFirstJourney = new DateTime(2017, 1, 1);
+                            var dateOfSecondJourney = dateOfFirstJourney.AddYears(1);
+                            var expectedCostSecondJourney = costPerJourney;
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithDate(dateOfFirstJourney)
+                                .WithCost(costFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .WithJourneyHistory(firstJourney)
+                                .Build();
+
+                            var zone = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(costPerJourney)
+                                .WithCostPerMonthLimit(limitPerMonth)
                                 .Build();
 
                             var stationStart = StationBuilder.Create()
@@ -505,7 +637,105 @@ namespace ClamCardTests
                             var card = CardBuilder.Create()
                                 .WithJourneyHistory(firstJourney)
                                 .Build();
-                            
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone1)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone2)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+                    }
+
+                    [TestFixture]
+                    public class InSameWeek
+                    {
+                        [Test]
+                        public void ReturnsJourney_WithCostNotExceedingCostPerWeekLimitOfMostExpensiveZone()
+                        {
+                            //arrange
+                            var costFirstJourney = 3m;
+                            var dateOfFirstJourney = new DateTime(2018, 8, 6);
+                            var expectedCostSecondJourney = 2m;
+                            var dateOfSecondJourney = dateOfFirstJourney.AddDays(1);
+
+                            var zone1 = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(3)
+                                .WithCostPerWeekLimit(4)
+                                .Build();
+
+                            var zone2 = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(4)
+                                .WithCostPerWeekLimit(5)
+                                .Build();
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithCost(costFirstJourney)
+                                .WithDate(dateOfFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithJourneyHistory(firstJourney)
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .Build();
+
+                            var stationStart = StationBuilder.Create()
+                                .WithZone(zone1)
+                                .Build();
+
+                            var stationEnd = StationBuilder.Create()
+                                .WithZone(zone2)
+                                .Build();
+                            //act
+                            card.StartJourney(stationStart);
+                            var actual = card.EndJourney(stationEnd);
+                            //assert
+                            Expect(actual.Cost).To.Equal(expectedCostSecondJourney);
+                        }
+                    }
+
+                    [TestFixture]
+                    public class InSameMonth
+                    {
+                        [Test]
+                        public void ReturnsJourney_WithCostNotExceedingCostPerWeekLimitOfMostExpensiveZone()
+                        {
+                            //arrange
+                            var costFirstJourney = 3m;
+                            var dateOfFirstJourney = new DateTime(2018, 8, 6);
+                            var expectedCostSecondJourney = 2m;
+                            var dateOfSecondJourney = dateOfFirstJourney.AddDays(7);
+
+                            var zone1 = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(3)
+                                .WithCostPerMonthLimit(4)
+                                .Build();
+
+                            var zone2 = FakeZoneBuilder
+                                .Create()
+                                .WithCostPerSingleJourney(4)
+                                .WithCostPerMonthLimit(5)
+                                .Build();
+
+                            var firstJourney = JourneyBuilder.Create()
+                                .WithCost(costFirstJourney)
+                                .WithDate(dateOfFirstJourney)
+                                .Build();
+
+                            var card = CardBuilder.Create()
+                                .WithJourneyHistory(firstJourney)
+                                .WithDateTimeProviderFor(dateOfSecondJourney)
+                                .Build();
+
                             var stationStart = StationBuilder.Create()
                                 .WithZone(zone1)
                                 .Build();

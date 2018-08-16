@@ -26,5 +26,12 @@ namespace ClamCard.Extensions
                 .Where(j => j.Date.Year == year && j.Date.WeekOfYear() == weekNumber)
                 .SumCost();
         }
+
+        public static decimal SumCostOfJourneysTakenInMonth(this IEnumerable<Journey> journeys, int year, int month)
+        {
+            return journeys
+                .Where(j => j.Date.Year == year && j.Date.Month == month)
+                .SumCost();
+        }
     }
 }

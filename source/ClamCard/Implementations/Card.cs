@@ -61,6 +61,7 @@ namespace ClamCard.Implementations
             var journeyCost = CostPerSingleJourney(CurrentJourneyStartFrom, endStation);
             var costPerDayLimit = CostPerDayLimit(CurrentJourneyStartFrom, endStation);
             var costPerWeekLimit = CostPerWeekLimit(CurrentJourneyStartFrom, endStation);
+            var costPerMonthLimit = CostPerMonthLimit(CurrentJourneyStartFrom, endStation);
 
             var currentDate = _dateTimeProvider.Now.Date;
             var amountAlreadyChargedToday = _journeyHistory
@@ -69,8 +70,12 @@ namespace ClamCard.Implementations
             var amountAlreadyChargedThisWeek = _journeyHistory
                 .SumCostOfJourneysTakenInWeek(currentDate.Year, currentDate.WeekOfYear());
 
+            var amountAlreadyChargedThisMonth = _journeyHistory
+                .SumCostOfJourneysTakenInMonth(currentDate.Year, currentDate.Month);
+
             journeyCost = LimitCostToMaxAmount(journeyCost, costPerDayLimit, amountAlreadyChargedToday);
             journeyCost = LimitCostToMaxAmount(journeyCost, costPerWeekLimit, amountAlreadyChargedThisWeek);
+            journeyCost = LimitCostToMaxAmount(journeyCost, costPerMonthLimit, amountAlreadyChargedThisMonth);
 
             return journeyCost;
         }
@@ -99,6 +104,13 @@ namespace ClamCard.Implementations
         {
             var costAtStartZone = startStation.Zone.CostPerWeekLimit;
             var costAtEndZone = endStation.Zone.CostPerWeekLimit;
+            return Math.Max(costAtStartZone, costAtEndZone);
+        }
+
+        private static decimal CostPerMonthLimit(IStation startStation, IStation endStation)
+        {
+            var costAtStartZone = startStation.Zone.CostPerMonthLimit;
+            var costAtEndZone = endStation.Zone.CostPerMonthLimit;
             return Math.Max(costAtStartZone, costAtEndZone);
         }
 
